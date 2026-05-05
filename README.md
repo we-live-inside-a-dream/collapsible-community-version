@@ -87,7 +87,7 @@ If you want to contribute or build the extension from source:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/we-live-inside-a-dream/AI-Extension.git
+   git clone https://github.com/we-live-inside-a-dream/collapsible-community-version.git
    ```
 2. **Load in Chrome:**
    - Go to `chrome://extensions/`
