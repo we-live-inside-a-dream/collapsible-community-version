@@ -16,6 +16,7 @@
 
 - **🎯 Smart Targeting:** Automatically detects AI responses while leaving user prompts visible for context.
 - **🔄 Persistent State:** Your choice to collapse a message is saved! Reload the page or switch conversations, and your collapsed messages stay hidden until you expand them.
+- **📋 Conversation TOC:** Sidebar showing a list of your user prompts. Click to jump to any message in the conversation.
 - **📝 Intelligent Previews:** When a message is collapsed, it shows a subtle "AI" tag and a 120-character preview of the content, so you never lose track of where you are.
 - **🎨 Premium Aesthetics:**
   - **Glassmorphism:** Modern blur effects and subtle borders that feel native to every platform.
@@ -52,6 +53,17 @@ Install the **AI Chat Collapser** directly from the [Chrome Web Store](https://c
 2. Hover over any AI response. A collapse icon (minus) will appear in the top-right corner.
 3. Click the icon to **collapse** the message. It will shrink to a slim preview bar.
 4. Click the plus icon on the preview bar to **expand** the message back to full size.
+5. Use the **TOC** sidebar to quickly navigate between your messages.
+
+---
+
+## 🗂️ TOC Sidebar
+
+The TOC (Table of Contents) sidebar appears on the right side of the conversation and shows a list of your user prompts. Click any item to jump directly to that message in the conversation history.
+
+- **Auto-generated:** The TOC populates automatically as you send new prompts.
+- **Smart highlighting:** The current message you're viewing is highlighted in the TOC.
+- **Collapsible:** Click "Hide" to hide the TOC sidebar, or use the "TOC" button to show it again.
 
 ---
 

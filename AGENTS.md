@@ -21,7 +21,7 @@ AI Chat Collapser - Chrome extension (Manifest V3) that adds collapse/expand to 
 ## Architecture
 
 - `manifest.json` - extension config, content script injection at `document_idle`
-- `content.js` - core logic (~1,450 lines): MutationObserver (debounced) for streaming, platform detection via hostname regex, message selectors with fallbacks per platform, chrome.storage.local persistence with content hashing, bookmarking feature with deep linking (URL hash `#acc_bookmark=...` encodes message hash, scroll position, message index, conversation ID for navigation), lazy-loading scroll handling per platform, TOC sidebar with tab navigation (TOC/Saved)
+- `content.js` - core logic (~765 lines): MutationObserver (debounced) for streaming, platform detection via hostname regex, message selectors with fallbacks per platform, chrome.storage.local persistence with content hashing, TOC sidebar for user prompt navigation
 - `styles.css` - injected UI styles, glassmorphism theme, CSS custom properties for light/dark mode
 
 ## Critical Conventions

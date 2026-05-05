@@ -10,8 +10,8 @@ AI Chat Collapser is a Chrome browser extension that adds collapse/expand functi
 
 The extension consists of three main files:
 - `manifest.json`: Chrome extension manifest v3 configuration
-- `content.js`: Main content script that injects collapse/expand functionality (1,274 lines)
-- `styles.css`: CSS styles for the injected UI elements with light/dark mode support (799 lines)
+- `content.js`: Main content script that injects collapse/expand functionality (765 lines)
+- `styles.css`: CSS styles for the injected UI elements with light/dark mode support (595 lines)
 
 The content script uses a MutationObserver to detect new messages and platform-specific selectors to identify user vs AI messages across different chat platforms.
 
@@ -39,5 +39,5 @@ To test changes:
 - Platform detection uses hostname matching via regex patterns
 - Message identification uses multiple fallback selectors for each platform
 - State persistence uses chrome.storage.local API with message content hashing
-- The extension includes a bookmarking feature for saving AI responses
+- The extension includes a TOC sidebar for navigating user prompts
 - UI uses glassmorphism design with CSS custom properties for theming
