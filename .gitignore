@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment / local config
+.env
+.env.*
+
+# Build / packaging artifacts
+dist/
+build/
+out/
+*.zip
+*.crx
+*.xpi
+
+# Caches / tooling
+.cache/
+.parcel-cache/
+.eslintcache
+coverage/
+
+# TypeScript (if added later)
+*.tsbuildinfo
+
+# Misc
+*.tmp
+*.bak

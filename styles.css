@@ -1,0 +1,595 @@
+/* ============================================================
+   AI Chat Collapser — Injected Styles
+   
+   Dark/light mode support via prefers-color-scheme AND 
+   per-platform overrides. The collapsed state shows a slim bar
+   with the first line of the message as a preview.
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   CSS Custom Properties (Light Mode defaults)
+   ---------------------------------------------------------- */
+:root {
+  --acc-btn-bg: rgba(0, 0, 0, 0.06);
+  --acc-btn-bg-hover: rgba(0, 0, 0, 0.12);
+  --acc-btn-color: #555;
+  --acc-btn-color-hover: #111;
+  --acc-border: rgba(0, 0, 0, 0.08);
+  --acc-preview-color: #444;
+  --acc-collapsed-bg: rgba(0, 0, 0, 0.02);
+  --acc-icon-size: 16px;
+  --acc-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* TOC (Table of Contents) */
+  --acc-toc-bg: rgba(255, 255, 255, 0.68);
+  --acc-toc-border: rgba(0, 0, 0, 0.10);
+  --acc-toc-text: rgba(15, 23, 42, 0.92);
+  --acc-toc-muted: rgba(15, 23, 42, 0.65);
+  --acc-toc-hover: rgba(15, 23, 42, 0.06);
+  --acc-toc-active: rgba(99, 102, 241, 0.18);
+  --acc-toc-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+/* ----------------------------------------------------------
+   Dark Mode overrides
+   ---------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --acc-btn-bg: rgba(255, 255, 255, 0.08);
+    --acc-btn-bg-hover: rgba(255, 255, 255, 0.16);
+    --acc-btn-color: #aaa;
+    --acc-btn-color-hover: #eee;
+    --acc-border: rgba(255, 255, 255, 0.1);
+    --acc-preview-color: #bbb;
+    --acc-collapsed-bg: rgba(255, 255, 255, 0.03);
+
+    --acc-toc-bg: rgba(17, 24, 39, 0.62);
+    --acc-toc-border: rgba(255, 255, 255, 0.12);
+    --acc-toc-text: rgba(255, 255, 255, 0.92);
+    --acc-toc-muted: rgba(255, 255, 255, 0.62);
+    --acc-toc-hover: rgba(255, 255, 255, 0.08);
+    --acc-toc-active: rgba(99, 102, 241, 0.24);
+    --acc-toc-shadow: 0 12px 32px rgba(0, 0, 0, 0.40);
+  }
+}
+
+/* 
+   Platform-specific dark mode overrides.
+   ChatGPT and Gemini use class-based dark themes; Claude uses 
+   a data-attribute. We hook into those to match perfectly.
+*/
+html.dark,
+html[data-theme="dark"],
+body.dark-mode,
+[data-mode="dark"] {
+  --acc-btn-bg: rgba(255, 255, 255, 0.08);
+  --acc-btn-bg-hover: rgba(255, 255, 255, 0.16);
+  --acc-btn-color: #aaa;
+  --acc-btn-color-hover: #eee;
+  --acc-border: rgba(255, 255, 255, 0.1);
+  --acc-preview-color: #bbb;
+  --acc-collapsed-bg: rgba(255, 255, 255, 0.03);
+
+  --acc-toc-bg: rgba(17, 24, 39, 0.62);
+  --acc-toc-border: rgba(255, 255, 255, 0.12);
+  --acc-toc-text: rgba(255, 255, 255, 0.92);
+  --acc-toc-muted: rgba(255, 255, 255, 0.62);
+  --acc-toc-hover: rgba(255, 255, 255, 0.08);
+  --acc-toc-active: rgba(99, 102, 241, 0.24);
+  --acc-toc-shadow: 0 12px 32px rgba(0, 0, 0, 0.40);
+}
+
+/* ----------------------------------------------------------
+   Message Wrapper
+   
+   We add this class to each detected message container so 
+   we can position the button and control the collapse state.
+   ---------------------------------------------------------- */
+.acc-message-wrapper {
+  position: relative;
+}
+
+/* ----------------------------------------------------------
+   Controls Container
+   
+   Static flow container — does NOT use position:absolute.
+   It sits naturally in the DOM at the end of the message.
+   The button inside uses absolute positioning relative to 
+   .acc-message-wrapper (NOT this container).
+   ---------------------------------------------------------- */
+.acc-controls {
+  /* Static position — no layout interference */
+  position: static;
+  display: block;
+}
+
+/* When collapsed, the entire controls container becomes the visual bar */
+.acc-collapsed>.acc-controls-row>.acc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  background: var(--acc-collapsed-bg);
+  border: 1px solid var(--acc-border);
+  box-sizing: border-box;
+}
+
+/* ----------------------------------------------------------
+   Collapse Toggle Button
+   
+   Positioned in the top-right corner of the MESSAGE WRAPPER
+   (not the controls container). Uses position: absolute
+   relative to .acc-message-wrapper.
+   ---------------------------------------------------------- */
+.acc-collapse-btn {
+  position: absolute;
+  top: 4px;
+  right: -5px;
+  /* sits to the left of the star button */
+  z-index: 99999;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--acc-border);
+  border-radius: 6px;
+  background: var(--acc-btn-bg);
+  color: var(--acc-btn-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--acc-transition),
+    background var(--acc-transition),
+    color var(--acc-transition),
+    transform var(--acc-transition),
+    box-shadow var(--acc-transition);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Show button on hover over the message container */
+.acc-message-wrapper:hover .acc-collapse-btn,
+.acc-collapse-btn:focus-visible {
+  opacity: 1;
+}
+
+/* Always visible when collapsed (so user can expand) */
+.acc-collapsed>.acc-controls-row>.acc-controls>.acc-collapse-btn {
+  opacity: 1;
+  position: static;
+  /* Join the flex flow of .acc-controls */
+  margin-left: 12px;
+  flex-shrink: 0;
+  transform: none;
+  /* Reset any absolute positioning transforms */
+}
+
+.acc-collapse-btn:hover {
+  background: var(--acc-btn-bg-hover);
+  color: var(--acc-btn-color-hover);
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.acc-collapse-btn:active {
+  transform: scale(0.95);
+}
+
+.acc-collapse-btn:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------
+   Star Button Placement
+
+   The star button is injected as a direct child of
+   `.acc-controls-row`, as a sibling next to `.acc-controls`.
+   ---------------------------------------------------------- */
+.acc-controls-row {
+  position: relative;
+  /* Ensure the row sits at the very top of the message */
+  order: -1;
+}
+
+/* ----------------------------------------------------------
+   Collapse Icon (CSS-only plus/minus)
+   ---------------------------------------------------------- */
+.acc-collapse-icon {
+  display: block;
+  width: var(--acc-icon-size);
+  height: var(--acc-icon-size);
+  position: relative;
+  transition: transform var(--acc-transition);
+}
+
+/* Horizontal bar (always visible — forms the "minus") */
+.acc-collapse-icon::before,
+.acc-collapse-icon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+  transition: transform var(--acc-transition), opacity var(--acc-transition);
+}
+
+/* Vertical bar (forms the "plus" — hidden when expanded) */
+.acc-collapse-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+/* When collapsed: show "+" */
+.acc-collapsed .acc-collapse-icon::after {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------
+   Message Body — the content area that gets hidden
+   ---------------------------------------------------------- */
+.acc-message-body {
+  transition:
+    max-height var(--acc-transition),
+    opacity var(--acc-transition);
+}
+
+.acc-collapsed .acc-message-body {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  pointer-events: none;
+}
+
+/* Fallback: when no body selector matched, hide all direct
+   children of the wrapper except our injected controls. */
+.acc-collapsed.acc-message-body-self>*:not(.acc-controls-row) {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+  transition:
+    max-height var(--acc-transition),
+    opacity var(--acc-transition);
+}
+
+/* ----------------------------------------------------------
+   Preview Bar — visible only when collapsed
+   
+   Shows the first ~120 chars of the message as a preview.
+   ---------------------------------------------------------- */
+.acc-preview {
+  display: none;
+}
+
+.acc-collapsed>.acc-controls-row>.acc-controls>.acc-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  color: var(--acc-preview-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  z-index: 99999;
+}
+
+.acc-preview-role {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.acc-preview-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   TOC Sidebar — User Prompts
+   ============================================================ */
+.acc-toc {
+  position: fixed;
+  right: 16px;
+  top: 72px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: min(320px, calc(100vw - 24px));
+  max-height: calc(100vh - 72px - 96px);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--acc-toc-border);
+  border-radius: 14px;
+  background: var(--acc-toc-bg);
+  color: var(--acc-toc-text);
+  box-shadow: var(--acc-toc-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.acc-toc.acc-toc--hidden {
+  display: none;
+}
+
+.acc-toc__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--acc-toc-border);
+}
+
+.acc-toc__title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--acc-toc-muted);
+  user-select: none;
+}
+
+.acc-toc__close {
+  border: 1px solid var(--acc-toc-border);
+  background: transparent;
+  color: var(--acc-toc-muted);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--acc-transition), color var(--acc-transition), transform var(--acc-transition);
+}
+
+.acc-toc__close:hover {
+  background: var(--acc-toc-hover);
+  color: var(--acc-toc-text);
+  transform: translateY(-1px);
+}
+
+.acc-toc__close:active {
+  transform: translateY(0);
+}
+
+.acc-toc__close:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------
+   Tab Navigation
+   ---------------------------------------------------------- */
+.acc-toc__tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.acc-toc__tab {
+  border: none;
+  background: transparent;
+  color: var(--acc-toc-muted);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all var(--acc-transition);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.acc-toc__tab:hover {
+  background: var(--acc-toc-hover);
+  color: var(--acc-toc-text);
+}
+
+.acc-toc__tab:active {
+  transform: translateY(0);
+}
+
+.acc-toc__tab--active {
+  background: var(--acc-toc-active);
+  color: var(--acc-toc-text);
+}
+
+.acc-toc__tab:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.acc-toc__list {
+  padding: 8px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  display: none;
+  /* Hidden by default */
+  flex-direction: column;
+  gap: 6px;
+}
+
+.acc-toc__list--visible {
+  display: flex;
+  /* Show active tab */
+}
+
+.acc-toc-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--acc-toc-text);
+  border-radius: 12px;
+  padding: 10px 10px;
+  cursor: pointer;
+  transition: background var(--acc-transition), border-color var(--acc-transition), transform var(--acc-transition);
+}
+
+.acc-toc-item:hover {
+  background: var(--acc-toc-hover);
+  transform: translateY(-1px);
+}
+
+.acc-toc-item:active {
+  transform: translateY(0);
+}
+
+.acc-toc-item:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.acc-toc-item__label {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acc-toc-item--active {
+  background: var(--acc-toc-active);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.acc-toc-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 999999;
+  border: 1px solid var(--acc-toc-border);
+  background: var(--acc-toc-bg);
+  color: var(--acc-toc-text);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: var(--acc-toc-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform var(--acc-transition), background var(--acc-transition);
+}
+
+.acc-toc-toggle:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--acc-toc-bg) 82%, #6366f1 18%);
+}
+
+.acc-toc-toggle:active {
+  transform: translateY(0);
+}
+
+.acc-toc-toggle:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.acc-toc-toggle.acc-toc-toggle--hidden {
+  display: none;
+}
+
+/* Flash ring on teleport target */
+.acc-toc-flash {
+  outline: 2px solid rgba(99, 102, 241, 0.6);
+  outline-offset: 4px;
+  border-radius: 10px;
+  transition: outline-color var(--acc-transition);
+}
+
+/* Make scrollIntoView() stop earlier so prompt isn’t clipped by sticky UI */
+[data-acc-toc-id] {
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 140px;
+}
+
+/* ============================================================
+   Toast Notifications
+   ============================================================ */
+
+.acc-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999999;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--acc-toc-bg);
+  color: var(--acc-toc-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--acc-toc-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--acc-toc-border);
+  opacity: 0;
+  animation: acc-toast-fade-in 0.3s ease forwards;
+}
+
+.acc-toast--success {
+  border-color: rgba(16, 163, 127, 0.3);
+}
+
+.acc-toast--error {
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.acc-toast--hiding {
+  animation: acc-toast-fade-out 0.3s ease forwards;
+}
+
+@keyframes acc-toast-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes acc-toast-fade-out {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
